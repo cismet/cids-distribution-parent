@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>5.1-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
@@ -58,11 +58,14 @@
             IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT
             Plugins related to the creation of the autodistribution are
             are disabled by default! Enable them individually in the respective
-            autodsitribution module!
+            autodistributuion module!
+            
+            To override properties (e.g. skip autodistributuon creation on ci server use 
+            settings.xml or nbactions.xml!
         -->
         <mdep.skip>true</mdep.skip>
         <cids.generate-lib.skip>true</cids.generate-lib.skip>
-        <exex.skip>true</exex.skip>
+        <exec.skip>true</exec.skip>
     </properties>
 
     <scm>
@@ -194,11 +197,37 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!--
+                    Update versions of all child modules to version of parent module!
+                -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>update-child-modules</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>update-child-modules</goal>
+                            </goals>
+                            <configuration>
+                                <allowSnapshots>true</allowSnapshots>    
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         
         <plugins>
-        <!--
+            <!--
+                Activate the managed versions plugin
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
+            <!--
             NOTE:
             cids-maven-plugin generate-lib must be defined and configured
             in each *autodistribution module* individually!
@@ -221,44 +250,19 @@
     
     <!--
         DEPOLYMENT MODULES
-        Submodules for regular Reactor Build
+        Submodules for regular Reactor Build *and* autodistribution modules (changed since #2)
         These are the deployment artifacts that are required by the the autodistribution
-        modules. 
+        modules plus the autodistribution modules themselfes. 
         
         They are only required if the custom project (e.g. cids-custom-switchon) requires additional 
         dependencies for depolyment (cismap-plugin, cids.utils, etc.), otherwise 
         the custom project could be used directly in the autodistribution module.
     -->
     <modules>
-    </modules>    
-    
-    <!--
-        Controlling plugin execution based on build profiles does not work as expected
-        Therefore we have to rely on properties for activating / deactivating certain
-        plugins during the build!
-    -->   
-    <profiles>
         <!--
-            generate-autodistributions
-            Profile to be used in custom-distribution *parent projects* only. Triggers
-            the build of all autodistribution modules!
-
-            Deactiviated during regular builds, especially on CI Server (Jenkins)!
-            Can be activated in custom action in nbactions.xml or with mvn -pl or
-            mvn -P 
+            Controlling plugin execution based on build profiles does not work as expected
+            Therefore we have to rely on properties for activating / deactivating certain
+            plugins during the build!
         -->
-        <profile>
-            <id>generate-autodistributions</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <modules>
-                <!--
-                    Creates an autodistribution inlcuding the submodules specified 
-                    in the regular reactor build with help of the cids-maven-plugin.
-                -->
-                <!--<module>switchon-navigator-distribution</module>-->
-            </modules> 
-        </profile>
-    </profiles>  
+    </modules>      
 </project>
