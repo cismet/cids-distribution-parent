@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>5.1-SNAPSHOT</version>
+    <version>5.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
@@ -194,11 +194,37 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!--
+                    Update versions of all child modules to version of parent module!
+                -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>update-child-modules</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>update-child-modules</goal>
+                            </goals>
+                            <configuration>
+                                <allowSnapshots>true</allowSnapshots>    
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
             </plugins>
         </pluginManagement>
         
         <plugins>
-        <!--
+            <!--
+                Activate the managed versions plugin
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
+            <!--
             NOTE:
             cids-maven-plugin generate-lib must be defined and configured
             in each *autodistribution module* individually!
@@ -254,7 +280,7 @@
             </activation>
             <modules>
                 <!--
-                    Creates an autodistribution inlcuding the submodules specified 
+                    Creates an autodistribution including the submodules specified 
                     in the regular reactor build with help of the cids-maven-plugin.
                 -->
                 <!--<module>switchon-navigator-distribution</module>-->
