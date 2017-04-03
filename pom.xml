@@ -216,6 +216,17 @@
                         </execution>
                     </executions>
                 </plugin>
+                <!--
+                #4: Skip generation of *.jar and *-test.jar for deployment-modules.
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <skipIfEmpty>true</skipIfEmpty>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         
