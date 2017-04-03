@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>5.0.2</version>
+    <version>5.0.3</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
@@ -72,7 +72,7 @@
         <connection>https://github.com/cismet/cids-distribution-parent.git</connection>
         <developerConnection>scm:git:git@github.com:cismet/cids-distribution-parent.git</developerConnection>
         <url>https://github.com/cismet/cids-distribution-parent</url>
-        <tag>v5.0.2</tag>
+        <tag>v5.0.3</tag>
     </scm>
   
     <issueManagement>
@@ -215,6 +215,17 @@
                             </configuration>
                         </execution>
                     </executions>
+                </plugin>
+                <!--
+                #4: Skip generation of *.jar and *-test.jar for deployment-modules.
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <skipIfEmpty>true</skipIfEmpty>
+                        <skip>true</skip>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
