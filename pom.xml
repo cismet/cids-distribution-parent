@@ -219,9 +219,9 @@
                 <plugins>
                     <!--
                     generate-autodistribution
-                Plugin to be used in custom-distribution *autodistribution modules* only!
-                Acutally triggers the generation of the autodistribution with help of the 
-                cids maven plugin!
+                    Plugin to be used in custom-distribution *autodistribution modules* only!
+                    Acutally triggers the generation of the autodistribution with help of the 
+                    cids maven plugin!
             
                     Requires the following properties in settings.xml or a respective custom profile:
                            - de.cismet.cidsDistDir
@@ -344,6 +344,71 @@
                             </execution>
                         </executions>
                     </plugin>-->
+                </plugins>
+            </build>
+        </profile>
+        <!--
+            sign-ext-dependencies
+            Profile to be used in custom-distribution *autodistribution modules* only!
+            Signs all external dependencies with help of the sign_all.sh and sign.sh 
+            shellscripts from 
+            https://github.com/cismet/cids-docker-images/tree/dev/cids-distribution/cidsDistribution/utils
+
+            ATTENTION: Shellscripts must be present in ${de.cismet.cidsDistDir}/utils/
+
+            Requires the following properties in settings.xml or a respective custom profile:
+                - de.cismet.cidsDistDir
+                - de.cismet.keystore.path
+                - de.cismet.keystore.pass
+                - de.cismet.signing.tsa.server
+        -->
+        <profile>
+            <id>sign-ext-dependencies</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+                <file>
+                    <exists>.sign-ext-dependencies</exists>
+                </file>
+                <property>
+                    <name>cids-distribution.skip</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!--
+                        WARNING: This plugin may or may not work on windwos depending on the 
+                        ability to execute unix shellscripts (e.g. if cygwin or git bash is installed).
+                    -->
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <executions>
+                            <execution>
+                                <id>sign-ext-dependencies</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${de.cismet.cidsDistDir}/utils/sign_all.sh</executable>
+                                    <workingDirectory>${de.cismet.cidsDistDir}/utils/</workingDirectory>
+                                    <!--
+                                        These Properties must be defined in settings.xml 
+                                        (e.g. in a cutom profile)
+                                    -->
+                                    <arguments>
+                                        <argument>${de.cismet.cidsDistDir}/lib/ext</argument>
+                                        <argument>${de.cismet.keystore.path}</argument>
+                                        <argument>${de.cismet.keystore.pass}</argument>
+                                        <argument>${de.cismet.signing.tsa.server}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
