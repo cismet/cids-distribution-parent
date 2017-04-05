@@ -5,7 +5,7 @@
     <parent>
         <groupId>de.cismet</groupId>
         <artifactId>cismet-parent</artifactId>
-        <version>5.0.1</version>
+        <version>5.1-SNAPSHOT</version>
     </parent>
 
     <!--
@@ -51,21 +51,30 @@
             plugin!
         -->
         <enforcer.skip>false</enforcer.skip>
-        <maven.test.skip>false</maven.test.skip>
         <maven.install.skip>false</maven.install.skip>
         
         <!--
-            IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT
-            Plugins related to the creation of the autodistribution are
-            are disabled by default! Enable them individually in the respective
-            autodistributuion module!
-            
-            To override properties (e.g. skip autodistributuon creation on ci server use 
-            settings.xml or nbactions.xml!
+            Required for testing and running from nbactions
+            -> Controlled by netbeans-fastbuild(-test) build profiles
+            activatded in nbactions.xml
         -->
-        <mdep.skip>true</mdep.skip>
+        <!--
+            <mdep.skip>false</mdep.skip>
+            <exec.skip>false</exec.skip>
+        -->
+        
+        <!--
+            maven.test.skip is enabled / disabled in netbeans-fastbuild(-test)
+            build profiles that are activated in nbactions.xml
+        -->
+        <!--<maven.test.skip>false</maven.test.skip>-->
+        
+        <!--
+            IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT
+            Plugins related to the creation of the autodistribution are now defined / activated
+            in the cids-distribution build profile. See #5 
+        -->
         <cids.generate-lib.skip>true</cids.generate-lib.skip>
-        <exec.skip>true</exec.skip>
     </properties>
 
     <scm>
@@ -88,17 +97,134 @@
     <dependencyManagement>
     </dependencyManagement>  
 
+    <!--
+        Common build section for both deployment and distribution modules
+    -->
     <build>
         <pluginManagement>
             <plugins>
                 <!--
-                generate-autodistribution
+                    Update versions of all child modules to version of parent module!
+                -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>update-child-modules</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>update-child-modules</goal>
+                            </goals>
+                            <configuration>
+                                <allowSnapshots>true</allowSnapshots>    
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!--
+                #4: Skip generation of *.jar and *-test.jar for deployment-modules.
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <skipIfEmpty>true</skipIfEmpty>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        
+        <plugins>
+            <!--
+                Activate the managed versions plugin
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <!--
+        DEPOLYMENT MODULES
+        Submodules for regular Reactor Build *and* autodistribution modules (changed since #2)
+        These are the deployment artifacts that are required by the the autodistribution
+        modules plus the autodistribution modules themselfes. 
+        
+        They are only required if the custom project (e.g. cids-custom-switchon) requires additional 
+        dependencies for depolyment (cismap-plugin, cids.utils, etc.), otherwise 
+        the custom project could be used directly in the autodistribution module.
+    -->
+    <modules>
+        <!--
+            Controlling plugin execution based on build profiles does not work as expected
+            Therefore we have to rely on properties for activating / deactivating certain
+            plugins during the build!
+        -->
+    </modules>  
+    
+    <!--
+        The cids-distribution profile is activated for distribution modules only
+    -->
+    <profiles>
+        <profile>
+            <id>cids-distribution</id>            
+            <activation>
+                <!-- 
+                    activate the profile when file .cids-distribution 
+                    is present in module subfolder
+                -->
+                <file>
+                    <exists>.cids-distribution</exists>
+                </file>
+                <!--
+                    deactivate the profile when cids-distribution.skip property
+                    is set to true
+                -->
+                <property>
+                    <name>cids-distribution.skip</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            
+        <!-- Controlling plugin execution based on build profiles does not work as expected
+            Therefore we have to rely on properties for activating / deactivating certain
+            plugins during the build!
+        -->
+        <properties>
+            <!--
+                Deactivate all plugins not directly required for building the autodistribution
+            -->
+            <jalopy.skip>true</jalopy.skip>
+            <maven.source.skip>true</maven.source.skip>
+            <maven.javadoc.skip>true</maven.javadoc.skip>
+            <mdep.analyze.skip>true</mdep.analyze.skip>
+            <enforcer.skip>true</enforcer.skip>
+            <maven.test.skip>true</maven.test.skip>
+            <maven.install.skip>true</maven.install.skip>
+
+            <!--
+                 Activate all plugins directly required for building the autodistribution
+            -->
+            <mdep.skip>false</mdep.skip>
+            <cids.generate-lib.skip>false</cids.generate-lib.skip>
+            <exec.skip>false</exec.skip>
+            <jarsigner.skip>false</jarsigner.skip>
+        </properties>
+            
+        <build>
+            <pluginManagement>
+                <plugins>
+                    <!--
+                    generate-autodistribution
                 Plugin to be used in custom-distribution *autodistribution modules* only!
                 Acutally triggers the generation of the autodistribution with help of the 
                 cids maven plugin!
             
-                Requires the following properties in settings.xml or a respective custom profile:
-                       - de.cismet.cidsDistDir
+                    Requires the following properties in settings.xml or a respective custom profile:
+                           - de.cismet.cidsDistDir
                        - de.cismet.cidsCodebase
                        - de.cismet.keystore.path
                        - de.cismet.keystore.pass
@@ -167,113 +293,59 @@
                         - de.cismet.keystore.pass
                         - de.cismet.signing.tsa.server
 
-                            WARNING: This plugin may or may not work on windwos depending on the 
-                            ability to execute unix shellscripts (e.g. if cygwin or git bash is installed).
-                -->
-                <plugin>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <executions>
-                        <execution>
-                            <id>sign-ext-dependencies</id>
-                            <phase>install</phase>
-                            <goals>
-                                <goal>exec</goal>
-                            </goals>
-                            <configuration>
-                                <executable>${de.cismet.cidsDistDir}/utils/sign_all.sh</executable>
-                                <workingDirectory>${de.cismet.cidsDistDir}/utils/</workingDirectory>
-                                <!--
-                                    These Properties must be defined in settings.xml 
-                                    (e.g. in a cutom profile)
-                                -->
-                                <arguments>
-                                    <argument>${de.cismet.cidsDistDir}/lib/ext</argument>
-                                    <argument>${de.cismet.keystore.path}</argument>
-                                    <argument>${de.cismet.keystore.pass}</argument>
-                                    <argument>${de.cismet.signing.tsa.server}</argument>
-                                </arguments>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <!--
-                    Update versions of all child modules to version of parent module!
-                -->
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>versions-maven-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <id>update-child-modules</id>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>update-child-modules</goal>
-                            </goals>
-                            <configuration>
-                                <allowSnapshots>true</allowSnapshots>    
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <!--
-                #4: Skip generation of *.jar and *-test.jar for deployment-modules.
-                -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <configuration>
-                        <skipIfEmpty>true</skipIfEmpty>
-                        <skip>true</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        
-        <plugins>
-            <!--
-                Activate the managed versions plugin
-            -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-            </plugin>
-            <!--
-            NOTE:
-            cids-maven-plugin generate-lib must be defined and configured
-            in each *autodistribution module* individually!
-            -->
-            <!--<plugin>
-                <groupId>de.cismet.cids</groupId>
-                <artifactId>cids-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-lib</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>generate-lib</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
-        </plugins>
-    </build>
-    
-    <!--
-        DEPOLYMENT MODULES
-        Submodules for regular Reactor Build *and* autodistribution modules (changed since #2)
-        These are the deployment artifacts that are required by the the autodistribution
-        modules plus the autodistribution modules themselfes. 
-        
-        They are only required if the custom project (e.g. cids-custom-switchon) requires additional 
-        dependencies for depolyment (cismap-plugin, cids.utils, etc.), otherwise 
-        the custom project could be used directly in the autodistribution module.
-    -->
-    <modules>
-        <!--
-            Controlling plugin execution based on build profiles does not work as expected
-            Therefore we have to rely on properties for activating / deactivating certain
-            plugins during the build!
-        -->
-    </modules>      
+                                    WARNING: This plugin may or may not work on windwos depending on the 
+                                    ability to execute unix shellscripts (e.g. if cygwin or git bash is installed).
+                        -->
+                        <plugin>
+                            <artifactId>exec-maven-plugin</artifactId>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <executions>
+                                <execution>
+                                    <id>sign-ext-dependencies</id>
+                                    <phase>install</phase>
+                                    <goals>
+                                        <goal>exec</goal>
+                                    </goals>
+                                    <configuration>
+                                        <executable>${de.cismet.cidsDistDir}/utils/sign_all.sh</executable>
+                                        <workingDirectory>${de.cismet.cidsDistDir}/utils/</workingDirectory>
+                                        <!--
+                                            These Properties must be defined in settings.xml 
+                                            (e.g. in a cutom profile)
+                                        -->
+                                        <arguments>
+                                            <argument>${de.cismet.cidsDistDir}/lib/ext</argument>
+                                            <argument>${de.cismet.keystore.path}</argument>
+                                            <argument>${de.cismet.keystore.pass}</argument>
+                                            <argument>${de.cismet.signing.tsa.server}</argument>
+                                        </arguments>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <!--
+                    NOTE:
+                    cids-maven-plugin generate-lib must be defined and configured
+                    in each *autodistribution module* individually!
+                    -->
+                    <!--<plugin>
+                        <groupId>de.cismet.cids</groupId>
+                        <artifactId>cids-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-lib</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>generate-lib</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>-->
+                </plugins>
+            </build>
+        </profile>
+    </profiles>              
 </project>
