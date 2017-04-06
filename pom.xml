@@ -177,7 +177,7 @@
                     is present in module subfolder
                 -->
                 <file>
-                    <exists>-cids-distribution</exists>
+                    <exists>cids-distribution</exists>
                 </file>
                 <!--
                     deactivate the profile when cids-distribution.skip property
@@ -323,7 +323,7 @@
                     <family>unix</family>
                 </os>
                 <file>
-                    <exists>-sign-ext-dependencies</exists>
+                    <exists>sign-ext-dependencies</exists>
                 </file>
                 <property>
                     <name>cids-distribution.skip</name>
