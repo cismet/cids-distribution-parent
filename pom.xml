@@ -342,7 +342,11 @@
                         <executions>
                             <execution>
                                 <id>sign-ext-dependencies</id>
-                                <phase>install</phase>
+                                <!--
+                                    sign during verify phase because install phase 
+                                    is skipped for cids-distribution modules!
+                                -->
+                                <phase>verify</phase>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
