@@ -5,7 +5,7 @@
     <parent>
         <groupId>de.cismet</groupId>
         <artifactId>cismet-parent</artifactId>
-        <version>6.0</version>
+        <version>7.0</version>
     </parent>
 
     <!--
@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>7.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
