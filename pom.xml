@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>7.1-SNAPSHOT</version>
+    <version>8.0</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
@@ -81,7 +81,7 @@
         <connection>https://github.com/cismet/cids-distribution-parent.git</connection>
         <developerConnection>scm:git:git@github.com:cismet/cids-distribution-parent.git</developerConnection>
         <url>https://github.com/cismet/cids-distribution-parent</url>
-        <tag>HEAD</tag>
+        <tag>v8.0</tag>
     </scm>
   
     <issueManagement>
