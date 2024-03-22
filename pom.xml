@@ -18,7 +18,7 @@
     -->
     <groupId>de.cismet.cids</groupId>
     <artifactId>cids-distribution-parent</artifactId>
-    <version>8.1-SNAPSHOT</version>
+    <version>9.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>cids-distribution-parent</name>
