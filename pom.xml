@@ -327,7 +327,7 @@
                 </file>
                 <property>
                     <name>cids-distribution.skip</name>
-                    <value>!true</value>
+                    <value>true</value>
                 </property>
             </activation>
             <build>
